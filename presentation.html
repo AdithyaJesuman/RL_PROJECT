@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Inventory Optimization Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+    
+    <main class="container">
+        <header>
+            <h1>AI Inventory Management</h1>
+            <p class="subtitle">Comparing Standard Fixed-Ordering vs. Deep Q-Learning AI Agent</p>
+            <div class="nav-tabs">
+                <button id="btn-sim" class="tab-btn active">Live Simulation</button>
+                <button id="btn-explain" class="tab-btn">How it Works (Explainability)</button>
+            </div>
+        </header>
+
+        <div id="sim-view">        <!-- Global Market Data -->
+        <div class="market-ticker glass">
+            <div class="ticker-box">Day: <span id="day-ticker">1</span></div>
+            <div class="ticker-box">Current Buying Rate: <span id="demand-ticker">12 units/day</span></div>
+            <div class="ticker-box">Market Condition: <span id="status-ticker">Weekday Routine</span></div>
+        </div>
+
+        <section class="comparison-board">
+            
+            <!-- Traditional Method -->
+            <div class="system-card glass danger-border">
+                <h2>1. Traditional Model</h2>
+                <p class="desc">A fixed system that blindly orders exactly 15 shipments every day, totally unaware of real-world weekend surges.</p>
+                
+                <div class="metrics">
+                    <div class="metric"><span>Current Shelf Stock</span><strong id="trad-stock">20</strong></div>
+                    <div class="metric"><span>Shipments Ordered</span><strong id="trad-order">15</strong></div>
+                </div>
+                
+                <div class="kpis">
+                    <div class="kpi-box red">Total Stockouts<h3 id="trad-stockouts">0</h3></div>
+                    <div class="kpi-box">Holding Waste<h3 id="trad-holding">$0</h3></div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <div class="bar-chart" id="trad-bars"></div>
+                    <div class="alert-box alert-trad" id="trad-alert" style="opacity: 0;">⚠️ STOCKOUT! LOST SALES</div>
+                </div>
+            </div>
+
+            <!-- RL Agent Method -->
+            <div class="system-card glass success-border brain-card">
+                <h2>2. RL AI Agent</h2>
+                <p class="desc">Learns to maximize profit dynamically. It tracks the buying rate and actually pre-stocks exactly 1 day before the weekend.</p>
+                
+                <div class="metrics">
+                    <div class="metric"><span>Current Shelf Stock</span><strong id="rl-stock">20</strong></div>
+                    <div class="metric"><span>Dynamic AI Order</span><strong id="rl-order" class="highlight">0</strong></div>
+                </div>
+                
+                <div class="kpis">
+                    <div class="kpi-box green">Total Stockouts<h3 id="rl-stockouts">0</h3></div>
+                    <div class="kpi-box">Holding Waste<h3 id="rl-holding">$0</h3></div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <div class="bar-chart" id="rl-bars"></div>
+                    <div class="alert-box alert-rl" id="rl-alert" style="opacity: 0;">⚠️ STOCKOUT! LOST SALES</div>
+                </div>
+            </div>
+
+        </section>
+        </div> <!-- End sim-view -->
+
+        <!-- Explanation View -->
+        <div id="explain-view" style="display: none;">
+            <div class="explain-grid">
+                
+                <!-- The Problem -->
+                <div class="explain-card glass">
+                    <div class="card-icon red-glow">📉</div>
+                    <h2>1. The Problem (Stockouts)</h2>
+                    <p>In traditional inventory management, ordering is static. Here is what happens:</p>
+                    <ul class="flow-list">
+                        <li><span>📦 <b>Baseline:</b> We have 20 items in stock.</span></li>
+                        <li><span>🚚 <b>Action:</b> System blindly orders 15 items.</span></li>
+                        <li><span>🛒 <b>Event:</b> A massive weekend surge hits (Demand = 38).</span></li>
+                        <li><span>💥 <b>Result:</b> 20 + 15 = 35. We needed 38. <strong>STOCKOUT!</strong> We lose sales and customer trust.</span></li>
+                    </ul>
+                </div>
+
+                <!-- The RL Solution -->
+                <div class="explain-card glass">
+                    <div class="card-icon purple-glow">🧠</div>
+                    <h2>2. How the RL Model Fixes It</h2>
+                    <p>We trained a Deep Q-Network (DQN) that tracks two state variables:</p>
+                    <div class="state-box">State = [Current Inventory %, Is_Weekend]</div>
+                    <ul class="flow-list">
+                        <li><span>👁️ <b>Observation:</b> The AI sees it's Thursday (tomorrow = weekend) and stock is 45.</span></li>
+                        <li><span>⚡ <b>Action:</b> Instead of a normal order, it takes action `30` to aggressively pre-stock.</span></li>
+                        <li><span>💰 <b>Reward Logic:</b> It maximizes ((Sales * Price) - Holding Cost - Stockout Penalty).</span></li>
+                    </ul>
+                </div>
+
+                <!-- SHAP Explainability -->
+                <div class="explain-card glass full-width">
+                    <div class="card-icon blue-glow">📊</div>
+                    <h2>3. Inside the Brain: SHAP Feature Importance</h2>
+                    <p>How does the AI know when to buy? We use SHAP to literally look inside its neural network and see which variables drive its decisions. Red dots mean high feature value.</p>
+                    
+                    <div class="shap-container">
+                        <img src="shap_plot.png" alt="SHAP Summary Plot" class="shap-image">
+                        <div class="shap-text">
+                            <h3>What this graph tells us:</h3>
+                            <p><strong>• Is Weekend (Top Row):</strong> You can see a massive cluster of red dots pushed far to the right. This proves the network learned that a weekend surge strongly INCREASES the urgency to place a massive order.</p>
+                            <p><strong>• Current Inventory (Bottom Row):</strong> Blue dots (low inventory) push the model to the right (order more). Red dots (high inventory) are strictly pushed left (order nothing), perfectly learning to minimize holding costs.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
